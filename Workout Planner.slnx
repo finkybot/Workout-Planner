@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Exercise info Prototype/Exercise info Prototype.csproj" />
+  <Project Path="Workout Planner/Workout Planner.csproj" Id="452f3aaa-5144-426a-ba80-58ad7e13a3f3">
+    <Platform Project="x64" />
+    <Deploy />
+  </Project>
+</Solution>
