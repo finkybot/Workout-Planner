@@ -252,13 +252,37 @@ namespace Workout_Planner
                 ExerciseNameTextBlock.Text = selectedExercise.Name;
                 ExerciseDescriptionTextBlock.Text = selectedExercise.Description;
                 IsWeightLiftingTextBlock.Text = selectedExercise.IsWeightLifting ? "Yes" : "No";
+                EditWorkoutButton.Visibility = Visibility.Visible;
             }
             else
             {
                 ExerciseNameTextBlock.Text = "No exercise selected";
                 ExerciseDescriptionTextBlock.Text = "";
                 IsWeightLiftingTextBlock.Text = "";
+                EditWorkoutButton.Visibility = Visibility.Collapsed;
             }
+        }
+
+        /// <summary>
+        /// Handles the Tapped event on the WorkoutListView to deselect the current item
+        /// when the user taps on empty space within the list.
+        /// </summary>
+        /// <param name="sender">The ListView that raised the event.</param>
+        /// <param name="e">The event arguments.</param>
+        private void WorkoutListView_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            // If the tap target is not within a ListViewItem, clear the selection
+            DependencyObject? tapped = e.OriginalSource as DependencyObject;
+            while (tapped != null && tapped != WorkoutListView)
+            {
+                if (tapped is ListViewItem)
+                {
+                    return;
+                }
+                tapped = VisualTreeHelper.GetParent(tapped);
+            }
+
+            WorkoutListView.SelectedItem = null;
         }
     }
 }

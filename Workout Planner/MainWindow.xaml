@@ -40,6 +40,7 @@
                 <ListView
                     x:Name="WorkoutListView"
                     SelectionChanged="WorkoutListView_SelectionChanged"
+                    Tapped="WorkoutListView_Tapped"
                     Margin="10">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
@@ -110,8 +111,10 @@
 
             <!-- Right button -->
             <Button
+                x:Name="EditWorkoutButton"
                 Content="Edit Workout"
                 Grid.Column="2"
+                Visibility="Collapsed"
                 Click="EditWorkoutButton_Click" />
         </Grid>
     </Grid>
