@@ -84,6 +84,15 @@
                     x:Name="IsWeightLiftingTextBlock"
                     Text=""
                     Margin="0,0,0,15" />
+
+                <TextBlock
+                    Text="Weight Type:"
+                    FontWeight="Bold"
+                    Margin="0,0,0,5" />
+                <TextBlock
+                    x:Name="WeightTypeTextBlock"
+                    Text=""
+                    Margin="0,0,0,15" />
             </StackPanel>
         </Grid>
 
@@ -101,21 +110,21 @@
                 Grid.Column="0"
                 Spacing="10">
                 <Button
-                    Content="Add Workout"
-                    Click="AddWorkoutButton_Click" />
+                    Content="Add Exercise"
+                    Click="AddExerciseButton_Click" />
 
                 <Button
-                    Content="Remove Workout"
-                    Click="RemoveWorkoutButton_Click" />
+                    Content="Remove Exercise"
+                    Click="RemoveExerciseButton_Click" />
             </StackPanel>
 
             <!-- Right button -->
             <Button
-                x:Name="EditWorkoutButton"
-                Content="Edit Workout"
+                x:Name="EditExerciseButton"
+                Content="Edit Exercise"
                 Grid.Column="2"
                 Visibility="Collapsed"
-                Click="EditWorkoutButton_Click" />
+                Click="EditExerciseButton_Click" />
         </Grid>
     </Grid>
 </Window>

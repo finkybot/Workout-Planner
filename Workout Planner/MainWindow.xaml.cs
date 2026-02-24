@@ -32,7 +32,7 @@ namespace Workout_Planner
         public MainWindow()
         {
             InitializeComponent();
-            this.AppWindow.ResizeClient(new Windows.Graphics.SizeInt32(800, 600));
+            this.AppWindow.ResizeClient(new Windows.Graphics.SizeInt32(1000, 800));
             WorkoutListView.ItemsSource = exercises;
 
             string romingAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -42,24 +42,24 @@ namespace Workout_Planner
         }
 
         /// <summary>
-        /// Handles the Click event of the Add Workout button to create a new exercise.
+        /// Handles the Click event of the Add Exercise button to create a new exercise.
         /// </summary>
         /// <remarks>Creates a new exercise with default values and adds it to the exercises collection.</remarks>
         /// <param name="sender">The button that raised the event.</param>
         /// <param name="e">The event arguments.</param>
-        private void AddWorkoutButton_Click(object sender, RoutedEventArgs e)
+        private void AddExerciseButton_Click(object sender, RoutedEventArgs e)
         {
             // Add a new exercise or open a dialog
             exercises.Add(new Exercise("New Exercise", "Description here", false));
         }
 
         /// <summary>
-        /// Handles the Click event of the Remove Workout button to delete the selected exercise.
+        /// Handles the Click event of the Remove Exercise button to delete the selected exercise.
         /// </summary>
         /// <remarks>Removes the currently selected exercise from the collection if one is selected.</remarks>
         /// <param name="sender">The button that raised the event.</param>
         /// <param name="e">The event arguments.</param>
-        private void RemoveWorkoutButton_Click(object sender, RoutedEventArgs e)
+        private void RemoveExerciseButton_Click(object sender, RoutedEventArgs e)
         {
             if (WorkoutListView.SelectedItem is Exercise selected)
             {
@@ -68,14 +68,15 @@ namespace Workout_Planner
         }
 
         /// <summary>
-        /// Handles the Click event of the Edit Workout button to initiate editing of the selected exercise.
+        /// Handles the Click event of the Edit Exercise button to initiate editing of the selected exercise.
         /// </summary>
         /// <remarks>Displays a confirmation dialog before opening the edit exercise dialog. If the user confirms,
         /// the edit dialog is shown, allowing the user to modify the exercise's properties.</remarks>
         /// <param name="sender">The button that raised the event.</param>
         /// <param name="e">The event arguments.</param>
-        private async void EditWorkoutButton_Click(object sender, RoutedEventArgs e)
+        private async void EditExerciseButton_Click(object sender, RoutedEventArgs e)
         {
+            // Ensure an exercise is selected before attempting to edit
             if (WorkoutListView.SelectedItem is not Exercise selected)
             {
                 return;
@@ -83,14 +84,15 @@ namespace Workout_Planner
 
             try
             {
+                // Show a confirmation dialog before opening the edit dialog
                 ContentDialog dialog = new()
                 {
                     Title = "Edit Workout",
                     Content = new StackPanel
                     {
-                        Orientation = Orientation.Horizontal,
+                        Orientation = Orientation.Horizontal, /* Display the icon and text side by side for better visual appeal */
                         Spacing = 12,
-                        Children =
+                        Children = /* Combine an important symbol with the confirmation message to emphasize the action's significance */
                         {
                             new SymbolIcon { Symbol = Symbol.Important },
                             new TextBlock 
@@ -100,17 +102,19 @@ namespace Workout_Planner
                             }
                         }
                     },
+
+                    // Configure the dialog buttons and root, setting the default to "Cancel" to prevent accidental edits and ensure the user consciously chooses to proceed with editing
                     PrimaryButtonText = "OK",
                     SecondaryButtonText = "Cancel",
                     DefaultButton = ContentDialogButton.Secondary,
-                    XamlRoot = WorkoutListView.XamlRoot
+                    XamlRoot = WorkoutListView.XamlRoot // Set the XamlRoot to ensure the dialog is properly associated to the current window
                 };
 
-                ContentDialogResult result = await dialog.ShowAsync();
+                ContentDialogResult result = await dialog.ShowAsync(); // Await the user's response to the confirmation dialog
 
                 if (result == ContentDialogResult.Primary)
                 {
-                    await ShowEditExerciseDialog(selected);
+                    await ShowEditExerciseDialog(selected); // Open the edit dialog if the user confirms
                 }
             }
             catch (Exception ex)
@@ -127,10 +131,30 @@ namespace Workout_Planner
         /// <param name="exercise">The exercise to be edited.</param>
         private async Task ShowEditExerciseDialog(Exercise exercise)
         {
+            // Create input controls pre-populated with the current exercise values
+            // The weight type options will be dynamically updated based on the weightlifting toggle
             TextBox nameTextBox = new() { Text = exercise.Name, PlaceholderText = "Exercise Name" };
             TextBox descriptionTextBox = new() { Text = exercise.Description, PlaceholderText = "Description", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap };
             ToggleSwitch weightLiftingToggle = new() { IsOn = exercise.IsWeightLifting };
 
+            // Initialize the weight type ComboBox with options based on the current weightlifting status
+            ComboBox weightTypeComboBox = new()
+            {
+                ItemsSource = GetWeightTypeOptions(exercise.IsWeightLifting),
+                SelectedItem = exercise.WeightType,
+                IsEnabled = exercise.IsWeightLifting
+            };
+
+            // Update weight type options when the weightlifting toggle is changed
+            weightLiftingToggle.Toggled += (s, args) =>
+            {
+                bool isWeight = weightLiftingToggle.IsOn;
+                weightTypeComboBox.IsEnabled = isWeight;
+                weightTypeComboBox.ItemsSource = GetWeightTypeOptions(isWeight);
+                weightTypeComboBox.SelectedItem = isWeight ? WeightType.Dumbbell : WeightType.Bodyweight;
+            };
+
+            // Create and show the edit dialog
             ContentDialog editDialog = new()
             {
                 Title = "Edit Exercise Details",
@@ -144,22 +168,26 @@ namespace Workout_Planner
                         new TextBlock { Text = "Description:" },
                         descriptionTextBox,
                         new TextBlock { Text = "Weightlifting:" },
-                        weightLiftingToggle
+                        weightLiftingToggle,
+                        new TextBlock { Text = "Weight Type:" },
+                        weightTypeComboBox
                     }
                 },
-                PrimaryButtonText = "Save",
-                SecondaryButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = WorkoutListView.XamlRoot
+                PrimaryButtonText = "Save", /* Label the primary button as "Save" */
+                SecondaryButtonText = "Cancel", /* label the secondary button as "Cancel" */
+                DefaultButton = ContentDialogButton.Primary, /* Set the default button to "Save" to encourage users to save changes */
+                XamlRoot = WorkoutListView.XamlRoot /* Set the XamlRoot to ensure the dialog is properly associated to the current window */
             };
 
-            ContentDialogResult editResult = await editDialog.ShowAsync();
+            ContentDialogResult editResult = await editDialog.ShowAsync(); // Await the user's response to the edit dialog
 
+            // If the user clicks "Save", update the exercise properties and save the changes
             if (editResult == ContentDialogResult.Primary)
             {
                 exercise.Name = nameTextBox.Text;
                 exercise.Description = descriptionTextBox.Text;
                 exercise.IsWeightLifting = weightLiftingToggle.IsOn;
+                exercise.WeightType = weightTypeComboBox.SelectedItem is WeightType selectedWeightType ? selectedWeightType : WeightType.Bodyweight;
 
                 // Save the updated exercise
                 SaveExercise(exercise);
@@ -168,6 +196,21 @@ namespace Workout_Planner
                 WorkoutListView_SelectionChanged(null, null);
                 Console.WriteLine($"Exercise '{exercise.Name}' updated successfully.");
             }
+        }
+
+        /// <summary>
+        /// Returns the available WeightType options based on whether the exercise involves weightlifting.
+        /// </summary>
+        /// <remarks>Excludes <see cref="WeightType.Bodyweight"/> when the exercise is a weightlifting exercise,
+        /// since bodyweight is not a valid weight type for weighted exercises.</remarks>
+        /// <param name="isWeightLifting">Whether the exercise involves weightlifting.</param>
+        /// <returns>An array of <see cref="WeightType"/> values appropriate for the given context.</returns>
+        private static WeightType[] GetWeightTypeOptions(bool isWeightLifting)
+        {
+            // Call a Lambda function to filter the WeightType enum values based on the weightlifting status and return the appropriate options for the ComboBox
+            return Enum.GetValues<WeightType>()
+                .Where(wtype => !isWeightLifting || wtype != WeightType.Bodyweight)
+                .ToArray();
         }
 
         /// <summary>
@@ -247,19 +290,22 @@ namespace Workout_Planner
         /// <param name="e">The event arguments.</param>
         private void WorkoutListView_SelectionChanged(object? sender, SelectionChangedEventArgs? e)
         {
+            // Check if an exercise is selected and update the details panel accordingly
             if (WorkoutListView.SelectedItem is Exercise selectedExercise)
             {
                 ExerciseNameTextBlock.Text = selectedExercise.Name;
                 ExerciseDescriptionTextBlock.Text = selectedExercise.Description;
                 IsWeightLiftingTextBlock.Text = selectedExercise.IsWeightLifting ? "Yes" : "No";
-                EditWorkoutButton.Visibility = Visibility.Visible;
+                WeightTypeTextBlock.Text = selectedExercise.WeightType.ToString().Replace('_', ' ');
+                EditExerciseButton.Visibility = Visibility.Visible;
             }
-            else
+            else // If no exercise is selected, clear the details panel and hide the edit button
             {
                 ExerciseNameTextBlock.Text = "No exercise selected";
                 ExerciseDescriptionTextBlock.Text = "";
                 IsWeightLiftingTextBlock.Text = "";
-                EditWorkoutButton.Visibility = Visibility.Collapsed;
+                WeightTypeTextBlock.Text = "";
+                EditExerciseButton.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -271,7 +317,6 @@ namespace Workout_Planner
         /// <param name="e">The event arguments.</param>
         private void WorkoutListView_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            // If the tap target is not within a ListViewItem, clear the selection
             DependencyObject? tapped = e.OriginalSource as DependencyObject;
             while (tapped != null && tapped != WorkoutListView)
             {
