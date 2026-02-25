@@ -30,11 +30,13 @@ namespace Workout_Planner
         public ExerciseView()
         {
             InitializeComponent();
+
+            // Set the ItemsSource of the ExerciseListView to the exercises collection
             ExerciseListView.ItemsSource = exercises;
 
-            string romingAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string filePath = Path.Combine(romingAppDataPath, "Workout\\Exercises");
-            LoadExercises(filePath);
+            string romingAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData); // Get the path to the user's application data directory
+            string filePath = Path.Combine(romingAppDataPath, "Workout\\Exercises"); // Construct the full path to the exercises directory
+            LoadExercises(filePath); // Load exercises from the specified directory
         }
 
         /// <summary>
@@ -46,9 +48,12 @@ namespace Workout_Planner
         /// interface.</remarks>
         /// <param name="sender">The source of the event, typically the Add Exercise button that was clicked.</param>
         /// <param name="e">The event data associated with the button click.</param>
-        private void AddExerciseButton_Click(object sender, RoutedEventArgs e)
+        private async void AddExerciseButton_Click(object sender, RoutedEventArgs e)
         {
-            exercises.Add(new Exercise("New Exercise", "Description here", false));
+            Exercise newExercise = new("New Exercise", "Description here", false);
+            exercises.Add(newExercise);
+            ExerciseListView.SelectedItem = newExercise;
+            await ShowEditExerciseDialog(newExercise);
         }
 
         /// <summary>
@@ -62,7 +67,7 @@ namespace Workout_Planner
         {
             if (ExerciseListView.SelectedItem is Exercise selected)
             {
-                exercises.Remove(selected);
+                exercises.Remove(selected); // Remove the selected exercise from the collection
             }
         }
 
@@ -75,20 +80,25 @@ namespace Workout_Planner
         /// value.</remarks>
         public async void EditSelectedExercise()
         {
+            // Guard: Check if an exercise is selected in the workout list
             if (ExerciseListView.SelectedItem is not Exercise selected)
             {
                 return;
             }
 
+
+            // Display a confirmation dialog to the user before proceeding with editing the selected exercise
             try
             {
-                ContentDialog dialog = new()
+                ContentDialog dialog = new() // Create a new ContentDialog instance to confirm the edit action
                 {
                     Title = "Edit Workout",
                     Content = new StackPanel
                     {
                         Orientation = Orientation.Horizontal,
                         Spacing = 12,
+
+                        // The dialog content includes an important symbol icon and a text block that asks the user to confirm editing the selected exercise
                         Children =
                         {
                             new SymbolIcon { Symbol = Symbol.Important },
@@ -99,14 +109,15 @@ namespace Workout_Planner
                             }
                         }
                     },
-                    PrimaryButtonText = "OK",
-                    SecondaryButtonText = "Cancel",
-                    DefaultButton = ContentDialogButton.Secondary,
-                    XamlRoot = this.XamlRoot
+                    PrimaryButtonText = "OK", // Set the text for the primary button to "OK"
+                    SecondaryButtonText = "Cancel", // Set the text for the secondary button to "Cancel"
+                    DefaultButton = ContentDialogButton.Secondary, // Set the default button to the secondary button
+                    XamlRoot = this.XamlRoot // Set the XamlRoot property to ensure the dialog is displayed correctly in the context of the current user control
                 };
 
-                ContentDialogResult result = await dialog.ShowAsync();
+                ContentDialogResult result = await dialog.ShowAsync(); // Show the dialog asynchronously and await the user's response
 
+                // If the user confirms the edit action by clicking the primary button, proceed to show the edit exercise dialog
                 if (result == ContentDialogResult.Primary)
                 {
                     await ShowEditExerciseDialog(selected);
@@ -129,17 +140,21 @@ namespace Workout_Planner
         /// dialog is closed.</returns>
         private async Task ShowEditExerciseDialog(Exercise exercise)
         {
+
+            // Create UI elements for editing the exercise details, including text boxes for the name and description, a toggle switch for weightlifting status, and a combo box for weight type selection
             TextBox nameTextBox = new() { Text = exercise.Name, PlaceholderText = "Exercise Name" };
             TextBox descriptionTextBox = new() { Text = exercise.Description, PlaceholderText = "Description", AcceptsReturn = true, TextWrapping = TextWrapping.Wrap };
             ToggleSwitch weightLiftingToggle = new() { IsOn = exercise.IsWeightLifting };
 
+            // Initialize the weight type combo box with options based on the current weightlifting status of the exercise
             ComboBox weightTypeComboBox = new()
             {
                 ItemsSource = GetWeightTypeOptions(exercise.IsWeightLifting),
                 SelectedItem = exercise.WeightType,
                 IsEnabled = exercise.IsWeightLifting
             };
-
+            
+            // Handle the toggled event of the weightlifting toggle switch to update the weight type combo box accordingly
             weightLiftingToggle.Toggled += (s, args) =>
             {
                 bool isWeight = weightLiftingToggle.IsOn;
@@ -148,6 +163,7 @@ namespace Workout_Planner
                 weightTypeComboBox.SelectedItem = isWeight ? WeightType.Dumbbell : WeightType.Bodyweight;
             };
 
+            // Create and configure the content dialog for editing the exercise details, including the title, content layout, and button texts
             ContentDialog editDialog = new()
             {
                 Title = "Edit Exercise Details",
@@ -166,14 +182,15 @@ namespace Workout_Planner
                         weightTypeComboBox
                     }
                 },
-                PrimaryButtonText = "Save",
-                SecondaryButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = this.XamlRoot
+                PrimaryButtonText = "Save", // Set the text for the primary button to "Save"
+                SecondaryButtonText = "Cancel", // Set the text for the secondary button to "Cancel"
+                DefaultButton = ContentDialogButton.Primary, // Set the default button to the primary button
+                XamlRoot = this.XamlRoot // Set the XamlRoot property to ensure the dialog is displayed correctly in the context of the current user control
             };
 
-            ContentDialogResult editResult = await editDialog.ShowAsync();
+            ContentDialogResult editResult = await editDialog.ShowAsync(); // Show the edit dialog asynchronously and await the user's response
 
+            // If the user confirms the changes by clicking the primary button, update the exercise details with the values from the dialog and save the changes
             if (editResult == ContentDialogResult.Primary)
             {
                 exercise.Name = nameTextBox.Text;
@@ -181,8 +198,8 @@ namespace Workout_Planner
                 exercise.IsWeightLifting = weightLiftingToggle.IsOn;
                 exercise.WeightType = weightTypeComboBox.SelectedItem is WeightType selectedWeightType ? selectedWeightType : WeightType.Bodyweight;
 
-                SaveExercise(exercise);
-                ExerciseListView_SelectionChanged(null, null);
+                SaveExercise(exercise); // Save the updated exercise details to a file
+                ExerciseListView_SelectionChanged(null, null); // Refresh the selection to update the displayed details in the UI
                 Console.WriteLine($"Exercise '{exercise.Name}' updated successfully.");
             }
         }
@@ -198,8 +215,9 @@ namespace Workout_Planner
         /// the array excludes WeightType.Bodyweight.</returns>
         private static WeightType[] GetWeightTypeOptions(bool isWeightLifting)
         {
+            // Retrieve the available weight type options based on the specified lifting context
             return Enum.GetValues<WeightType>()
-                .Where(wtype => !isWeightLifting || wtype != WeightType.Bodyweight)
+                .Where(wtype => !isWeightLifting || wtype != WeightType.Bodyweight) // Filter out the Bodyweight option if isWeightLifting is true, we don't need it
                 .ToArray();
         }
 
@@ -213,10 +231,13 @@ namespace Workout_Planner
         /// otherwise, an error message is displayed.</param>
         private void LoadExercises(string directoryPath)
         {
+            // Check if the specified directory exists before attempting to load exercises
             if (Directory.Exists(directoryPath))
             {
-                exercises.Clear();
-                string[] files = Directory.GetFiles(directoryPath, "*.json");
+                exercises.Clear(); // Clear the existing exercises collection to prepare for loading new data
+                string[] files = Directory.GetFiles(directoryPath, "*.json"); // Get all JSON files in the specified directory
+
+                // Iterate through each JSON file and attempt to read and deserialize it into an Exercise object
                 foreach (string file in files)
                 {
                     try
@@ -250,19 +271,22 @@ namespace Workout_Planner
         /// <returns>true if the exercise was saved successfully; otherwise, false.</returns>
         private bool SaveExercise(Exercise exercise)
         {
+            // Attempt to save the specified exercise to a JSON file in the user's application data directory
             try
             {
+                // Configure JSON serialization options to use indented formatting and convert enum values to strings
                 var options = new JsonSerializerOptions
                 {
                     WriteIndented = true,
                     Converters = { new JsonStringEnumConverter() }
                 };
-                string json = JsonSerializer.Serialize(exercise, options);
-                string romingAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string filePath = Path.Combine(romingAppDataPath, "Workout\\Exercises");
-                Directory.CreateDirectory(filePath);
-                string fullFilePath = Path.Combine(filePath, $"{exercise.Name}.json");
-                File.WriteAllText(fullFilePath, json);
+
+                string json = JsonSerializer.Serialize(exercise, options); // Serialize the exercise object to a JSON string using the specified options
+                string romingAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData); // Get the path to the user's application data directory
+                string filePath = Path.Combine(romingAppDataPath, "Workout\\Exercises"); // Construct the full path to the exercises directory
+                Directory.CreateDirectory(filePath); // Ensure the directory exists before attempting to save the file
+                string fullFilePath = Path.Combine(filePath, $"{exercise.Name}.json"); // Construct the full file path for the exercise JSON file
+                File.WriteAllText(fullFilePath, json); // Write the serialized JSON to the file
                 Console.WriteLine("Exercise saved to: " + fullFilePath);
                 return true;
             }
@@ -286,6 +310,7 @@ namespace Workout_Planner
         /// were selected or deselected.</param>
         private void ExerciseListView_SelectionChanged(object? sender, SelectionChangedEventArgs? e)
         {
+            // Check if the selected item in the workout list view is an Exercise object and update the UI accordingly
             if (ExerciseListView.SelectedItem is Exercise selectedExercise)
             {
                 ExerciseNameTextBlock.Text = selectedExercise.Name;
@@ -294,7 +319,7 @@ namespace Workout_Planner
                 WeightTypeTextBlock.Text = selectedExercise.WeightType.ToString().Replace('_', ' ');
                 SelectionChanged?.Invoke(true);
             }
-            else
+            else // If no exercise is selected, reset the UI elements to indicate that no selection has been made
             {
                 ExerciseNameTextBlock.Text = "No exercise selected";
                 ExerciseDescriptionTextBlock.Text = "";
@@ -311,17 +336,19 @@ namespace Workout_Planner
         /// <param name="e">An object that contains data about the tap event, including information about the original source of the tap.</param>
         private void ExerciseListView_Tapped(object sender, TappedRoutedEventArgs e)
         {
+            // Check if the tap occurred on a ListViewItem, and if not, deselect the current item
             DependencyObject? tapped = e.OriginalSource as DependencyObject;
             while (tapped != null && tapped != ExerciseListView)
             {
+                // If the tapped element is a ListViewItem, we do not want to deselect the item, so we return early
                 if (tapped is ListViewItem)
                 {
                     return;
                 }
-                tapped = VisualTreeHelper.GetParent(tapped);
+                tapped = VisualTreeHelper.GetParent(tapped); // Traverse up the visual tree to check if any parent element is a ListViewItem
             }
 
-            ExerciseListView.SelectedItem = null;
+            ExerciseListView.SelectedItem = null; // If the tap did not occur on a ListViewItem, deselect the current item by setting SelectedItem to null
         }
     }
 }

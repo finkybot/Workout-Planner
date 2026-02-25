@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -13,13 +14,20 @@ namespace Workout_Planner
     /// allowing for efficient lookup and management. This class is intended for internal use within the application and
     /// is not thread-safe.</remarks>
     [Serializable]
-    internal class Plan 
+    internal class Plan : INotifyPropertyChanged
     {
+        private string planName = string.Empty;
+        public event PropertyChangedEventHandler? PropertyChanged;
         [JsonInclude]
         public Dictionary<string, Exercise> WorkoutPlan { get; set; } = new Dictionary<string, Exercise>();
+        
 
         [JsonInclude]
-        public string PlanName { get; set; }
+        public string PlanName
+        {
+            get => planName;
+            set { planName = value; OnPropertyChanged(); }
+        }
 
         /// <summary>
         /// Initializes a new instance of the Plan class.
@@ -77,6 +85,17 @@ namespace Workout_Planner
         public Dictionary<string, Exercise>? GetPlanDictionary()
         {
             return WorkoutPlan;
+        }
+
+        /// <summary>
+        /// Invokes the PropertyChanged event to notify subscribers that a property value has changed.
+        /// Used by {x:Bind Mode=OneWay} bindings to update the UI when properties are modified in place.
+        /// </summary>
+        /// <param name="propertyName">The name of the property that changed. This parameter is optional and is automatically
+        /// populated by the compiler if not specified.</param>
+        private void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

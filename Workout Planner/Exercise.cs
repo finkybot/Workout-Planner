@@ -66,6 +66,12 @@ namespace Workout_Planner
 
         public override string ToString() => $"{Name}: {Description} (Weightlifting: {IsWeightLifting})";
 
+        /// <summary>
+        /// Invokes the PropertyChanged event to notify subscribers that a property value has changed.
+        /// Used by {x:Bind Mode=OneWay} bindings to update the UI when properties are modified in place.
+        /// </summary>
+        /// <param name="propertyName">The name of the property that changed. This parameter is optional and is automatically
+        /// populated by the compiler if not specified.</param>
         private void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

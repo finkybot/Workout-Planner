@@ -36,7 +36,7 @@
                     </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:Exercise">
-                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock Text="{x:Bind Name, Mode=OneWay}" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>

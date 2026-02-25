@@ -20,12 +20,18 @@
         </Grid.RowDefinitions>
 
         <!-- Title -->
-        <TextBlock
-            Text="Workout Planner"
-            FontSize="24"
-            FontWeight="Bold"
-            HorizontalAlignment="Center"
-            Margin="10" />
+        <Border
+            Grid.Row="0"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="10">
+            <TextBlock
+                Text="Workout Planner"
+                FontSize="24"
+                FontWeight="Bold"
+                HorizontalAlignment="Center" />
+        </Border>
 
         <!-- Content + Navigation -->
         <Grid Grid.Row="1">
@@ -41,24 +47,37 @@
                 HorizontalContentAlignment="Stretch"
                 VerticalContentAlignment="Stretch" />
 
-            <!-- Navigation Buttons -->
-            <Grid Grid.Column="1" Margin="10">
-                <StackPanel Orientation="Vertical" Spacing="10"
-                            VerticalAlignment="Center">
-                    <Button Content="Exercise" HorizontalAlignment="Stretch" Click="ExerciseNav_Click" />
-                    <Button Content="Workout Planner" HorizontalAlignment="Stretch" Click="PlannerNav_Click" />
-                    <Button Content="Setup Workouts" HorizontalAlignment="Stretch" Click="WorkoutNav_Click" />
-                </StackPanel>
+            <!-- Navigation Panel -->
+            <Border
+                Grid.Column="1"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1,0,0,0"
+                CornerRadius="8,0,0,8">
+                <Grid Margin="10">
+                    <Button
+                        Content="Exit"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Top"
+                        Click="ExitButton_Click" />
 
-                <Button
-                    x:Name="EditExerciseButton"
-                    Content="Edit Exercise"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Bottom"
-                    Opacity="0"
-                    IsHitTestVisible="False"
-                    Click="EditExerciseButton_Click" />
-            </Grid>
+                    <StackPanel Orientation="Vertical" Spacing="10"
+                                VerticalAlignment="Center">
+                        <Button Content="Exercise" HorizontalAlignment="Stretch" Click="ExerciseNav_Click" />
+                        <Button Content="Workout Planner" HorizontalAlignment="Stretch" Click="PlannerNav_Click" />
+                        <Button Content="Setup Workouts" HorizontalAlignment="Stretch" Click="WorkoutNav_Click" />
+                    </StackPanel>
+
+                    <Button
+                        x:Name="EditExerciseButton"
+                        Content="Edit Exercise"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Bottom"
+                        Opacity="0"
+                        IsHitTestVisible="False"
+                        Click="EditExerciseButton_Click" />
+                </Grid>
+            </Border>
         </Grid>
     </Grid>
 </Window>
