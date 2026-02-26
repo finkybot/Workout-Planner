@@ -62,11 +62,13 @@ namespace Workout_Planner
                     exercises.Add(exercise);
                 }
                 SelectionChanged?.Invoke(true);
+                DeletePlanButton.Visibility = Visibility.Visible;
             }
             else
             {
                 PlanNameTextBlock.Text = "No plan selected";
                 SelectionChanged?.Invoke(false);
+                DeletePlanButton.Visibility = Visibility.Collapsed;
             }
             isSyncingExercises = false;
             UpdateAddExerciseButtonVisibility();
@@ -581,6 +583,41 @@ namespace Workout_Planner
                 plans.Add(newPlan);
                 SavePlan(newPlan);
                 PlanListView.SelectedItem = newPlan;
+            }
+        }
+
+        /// <summary>
+        /// Handles the Click event for the Delete Plan button, prompting the user for confirmation before deleting
+        /// the selected plan.
+        /// </summary>
+        /// <remarks>If the user confirms the deletion, the plan is removed from the plan collection and the
+        /// plan list view.</remarks>
+        /// <param name="sender">The source of the event, typically the Delete Plan button that was clicked.</param>
+        /// <param name="e">The event data associated with the Click event.</param>
+        private async void DeletePlanButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (PlanListView.SelectedItem is not Plan selectedPlan)
+                return;
+
+            ContentDialog dialog = new()
+            {
+                Title = "Delete Plan",
+                Content = $"Are you sure you want to delete the plan '{selectedPlan.PlanName}'?",
+                PrimaryButtonText = "Delete",
+                SecondaryButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Secondary,
+                XamlRoot = this.XamlRoot
+            };
+
+            ContentDialogResult result = await dialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
+            {
+                if (DeletePlan(selectedPlan.PlanName))
+                {
+                    plans.Remove(selectedPlan);
+                    PlanListView.SelectedItem = null;
+                }
             }
         }
     }

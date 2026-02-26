@@ -157,13 +157,19 @@
                         MaxWidth="400" />
                 </StackPanel>
             </StackPanel>
-
-            <Button
-                x:Name="NewPlanButton"
-                Content="New Plan"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                Click="NewPlanButton_Click" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                <Button
+                    x:Name="DeletePlanButton"
+                    Content="Delete Plan"
+                    VerticalAlignment="Center"
+                    Visibility="Collapsed"
+                    Click="DeletePlanButton_Click" />
+                <Button
+                    x:Name="NewPlanButton"
+                    Content="New Plan"
+                    VerticalAlignment="Center"
+                    Click="NewPlanButton_Click" />
+            </StackPanel>
         </Grid>
     </Grid>
 </UserControl>

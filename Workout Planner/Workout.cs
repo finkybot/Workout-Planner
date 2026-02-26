@@ -18,6 +18,12 @@ namespace Workout_Planner
         [JsonInclude]
         public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
 
+        [JsonIgnore]
+        public string FileName { get; set; } = "";
+
+        [JsonIgnore]
+        public string DisplayName => System.IO.Path.GetFileNameWithoutExtension(FileName);
+
         public Workout() { }
 
         public Workout(Plan plan)
