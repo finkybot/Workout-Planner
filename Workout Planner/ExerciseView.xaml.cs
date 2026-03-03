@@ -63,11 +63,48 @@ namespace Workout_Planner
         /// <remarks>No action is taken if no exercise is selected in the workout list.</remarks>
         /// <param name="sender">The source of the event, typically the Remove Exercise button.</param>
         /// <param name="e">The event data associated with the Click event.</param>
-        private void RemoveExerciseButton_Click(object sender, RoutedEventArgs e)
+        private async void RemoveExerciseButton_Click(object sender, RoutedEventArgs e)
         {
             if (ExerciseListView.SelectedItem is Exercise selected)
             {
-                exercises.Remove(selected); // Remove the selected exercise from the collection
+                ContentDialog dialog = new()
+                {
+                    Title = "Remove Exercise",
+                    Content = $"Are you sure you want to remove '{selected.Name}'?",
+                    PrimaryButtonText = "Remove",
+                    SecondaryButtonText = "Cancel",
+                    DefaultButton = ContentDialogButton.Secondary,
+                    XamlRoot = this.XamlRoot
+                };
+
+                ContentDialogResult result = await dialog.ShowAsync();
+
+                if (result == ContentDialogResult.Primary)
+                {
+                    try
+                    {
+                        string roamingAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                        // Match the save path and include the .json extension
+                        string filePath = Path.Combine(roamingAppDataPath, "Workout", "Exercises", $"{selected.Name}.json");
+                        if (File.Exists(filePath))
+                        {
+                            File.Delete(filePath);
+                            Console.WriteLine("Exercise file deleted: " + filePath);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Exercise file not found: " + filePath);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
+                    exercises.Remove(selected); // Remove the selected exercise from the collection
+                    ExerciseListView_SelectionChanged(null, null); // refresh UI state
+                    //exercises.Clear();
+                    //RemoveExerciseButton.Visibility = Microsoft.UI.Xaml.Visibility.Collapsed;
+                }
             }
         }
 

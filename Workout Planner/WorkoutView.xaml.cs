@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace Workout_Planner
 {
@@ -161,7 +162,7 @@ namespace Workout_Planner
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -477,6 +478,10 @@ namespace Workout_Planner
                 string fullFilePath = Path.Combine(filePath, workoutFileName);
                 File.WriteAllText(fullFilePath, json);
                 Console.WriteLine("Workout saved to: " + fullFilePath);
+
+                // show a temporary content dialog with the saved path (auto-hide after 2s)
+                _ = ShowTempSavedDialog(fullFilePath);
+
                 return true;
             }
             catch (Exception ex)
@@ -484,6 +489,30 @@ namespace Workout_Planner
                 Console.WriteLine(ex.ToString());
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Shows a temporary ContentDialog that displays the saved file path and auto-closes after 2 seconds.
+        /// </summary>
+        private async Task ShowTempSavedDialog(string path)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "Workout saved",
+                Content = $"Saved to: {path}",
+                PrimaryButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+
+            // Start showing the dialog without awaiting so we can auto-hide it.
+            var showTask = dialog.ShowAsync();
+
+            // Wait 2 seconds then hide the dialog on the UI thread.
+            await Task.Delay(2000);
+            Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread().TryEnqueue(() => dialog.Hide());
+
+            // ensure ShowAsync completes
+            await showTask;
         }
 
         /// <summary>
@@ -516,6 +545,19 @@ namespace Workout_Planner
                 Console.WriteLine(ex.ToString());
                 return false;
             }
+        }
+
+        private void OpenRoamingWorkoutFolder()
+        {
+            string roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string path = Path.Combine(roaming, "Workout");
+            // create for visibility if you want
+            Directory.CreateDirectory(path);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true
+            });
         }
     }
 }

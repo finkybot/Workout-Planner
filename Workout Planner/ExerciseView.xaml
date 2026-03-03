@@ -75,8 +75,8 @@
         <!-- Button Bar -->
         <Grid Grid.Row="1" Margin="10">
             <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Content="Add Exercise" Click="AddExerciseButton_Click" />
-                <Button Content="Remove Exercise" Click="RemoveExerciseButton_Click" />
+                <Button x:Name="AddExerciseButton" Content="Add Exercise" Click="AddExerciseButton_Click" />
+                <Button  x:Name="RemoveExerciseButton" Content="Remove Exercise" Click="RemoveExerciseButton_Click" />
             </StackPanel>
         </Grid>
     </Grid>
