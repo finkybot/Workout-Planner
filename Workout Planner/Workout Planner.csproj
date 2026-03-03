@@ -11,6 +11,7 @@
     <UseWinUI>true</UseWinUI>
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
+    <PublishTrimmed>false</PublishTrimmed>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
@@ -65,7 +66,17 @@
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-    <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <!-- Trimming disabled for all publish configurations -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <StartupObject>Workout_Planner.Program</StartupObject>
+  </PropertyGroup>
+
+  <!-- Ensure trimming is used only when publishing self-contained builds -->
+  <PropertyGroup>
+    <!-- Make non-Debug publishes self-contained so PublishTrimmed would be supported if enabled -->
+    <SelfContained Condition="'$(Configuration)' != 'Debug'">true</SelfContained>
+
+    <!-- If a single RID is needed for publish, set it for non-Debug automatically -->
+    <RuntimeIdentifier Condition="'$(Configuration)' != 'Debug' and '$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
   </PropertyGroup>
 </Project>

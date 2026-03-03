@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -335,10 +336,26 @@ namespace Workout_Planner
                         Console.WriteLine($"Error loading workout from {file}: {ex.Message}");
                     }
                 }
+
+                // Ensure workouts are displayed newest-first (latest date at top)
+                SortWorkoutsDescending();
             }
             else
             {
                 Console.WriteLine($"Directory '{directoryPath}' does not exist.");
+            }
+        }
+
+        /// <summary>
+        /// Sorts the internal workouts collection by Date descending so the newest workout appears first.
+        /// </summary>
+        private void SortWorkoutsDescending()
+        {
+            var sorted = workouts.OrderByDescending(w => w.Date).ToList();
+            workouts.Clear();
+            foreach (var w in sorted)
+            {
+                workouts.Add(w);
             }
         }
 
@@ -403,8 +420,35 @@ namespace Workout_Planner
                     Workout newWorkout = new(selectedPlan);
                     newWorkout.Date = DateOnly.FromDateTime(datePicker.Date.Value.DateTime);
                     newWorkout.FileName = fileName;
+
+                    // Iterate through each exercise in the selected plan and add it to the workout by checking earlier workout data for the same exercise. If no previous workout data exists for that exercise, if there is set the values to match the latest exercise,
+                    // if not add it with default values.
+                    foreach (var exercise in newWorkout.Exercises)
+                    {
+                        DateOnly dateOnly = newWorkout.Date.AddDays(-5); // Look back up to 5 days for previous workout data for this exercise, we will reset this for each exercise in the new workout plan
+
+                        // Iterate through workouts and exercises to find the most recent workout that contains this exercise and use those values as the default for the new workout,
+                        // but only if that workout is within the last 5 days. This allows us to pre-populate the new workout with recent values for each exercise, but not use old values that may no longer be relevant.
+                        foreach (var workout in workouts)
+                        {
+                            foreach (var ex in workout.Exercises) // Iterate through each exercise in the workout
+                            {
+                                // Check if the exercise in the workout matches the current exercise we are adding to the new workout and if the workout date is within the last 5 days. If so, use those values as the default for the new workout.
+                                if (workout.Date > dateOnly && ex.Value.Exercise.Name == exercise.Value.Exercise.Name)
+                                {
+                                    dateOnly = workout.Date; // Update the dateOnly to the date of the most recent workout that contains this exercise, so we only use values from the most recent workout within the last 5 days
+                                    exercise.Value.Sets = ex.Value.Sets;
+                                    exercise.Value.Reps = ex.Value.Reps;
+                                    exercise.Value.Weight = ex.Value.Weight;
+                                }
+                            }
+                        }
+                    }
+
                     SaveWorkout(newWorkout, fileName);
                     workouts.Add(newWorkout);
+                    // Keep collection sorted newest-first after adding
+                    SortWorkoutsDescending();
                 }
             }
         }
