@@ -366,7 +366,7 @@ namespace Workout_Planner
         /// </summary>
         /// <remarks>If a plan is selected in the PlanListView, a dialog is displayed allowing the user to
         /// confirm creation of a new workout plan using the selected plan's name. The user can choose to proceed or
-        /// cancel the operation.</remarks>
+        /// cancel the operation. New workouts will attempt to fill in values based on recent workouts within the last 10 days.</remarks>
         /// <param name="sender">The source of the event, typically the button that was clicked.</param>
         /// <param name="e">The event data associated with the click event.</param>
         private async void CreateWorkoutButton_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
@@ -426,18 +426,18 @@ namespace Workout_Planner
                     // if not add it with default values.
                     foreach (var exercise in newWorkout.Exercises)
                     {
-                        DateOnly dateOnly = newWorkout.Date.AddDays(-5); // Look back up to 5 days for previous workout data for this exercise, we will reset this for each exercise in the new workout plan
+                        DateOnly dateOnly = newWorkout.Date.AddDays(-10); // Look back up to 10 days for previous workout data for this exercise, we will reset this for each exercise in the new workout plan
 
                         // Iterate through workouts and exercises to find the most recent workout that contains this exercise and use those values as the default for the new workout,
-                        // but only if that workout is within the last 5 days. This allows us to pre-populate the new workout with recent values for each exercise, but not use old values that may no longer be relevant.
+                        // but only if that workout is within the last 10 days. This allows us to pre-populate the new workout with recent values for each exercise, but not use old values that may no longer be relevant.
                         foreach (var workout in workouts)
                         {
                             foreach (var ex in workout.Exercises) // Iterate through each exercise in the workout
                             {
-                                // Check if the exercise in the workout matches the current exercise we are adding to the new workout and if the workout date is within the last 5 days. If so, use those values as the default for the new workout.
+                                // Check if the exercise in the workout matches the current exercise we are adding to the new workout and if the workout date is within the last 10 days. If so, use those values as the default for the new workout.
                                 if (workout.Date > dateOnly && ex.Value.Exercise.Name == exercise.Value.Exercise.Name)
                                 {
-                                    dateOnly = workout.Date; // Update the dateOnly to the date of the most recent workout that contains this exercise, so we only use values from the most recent workout within the last 5 days
+                                    dateOnly = workout.Date; // Update the dateOnly to the date of the most recent workout that contains this exercise, so we only use values from the most recent workout within the last 10 days
                                     exercise.Value.Sets = ex.Value.Sets;
                                     exercise.Value.Reps = ex.Value.Reps;
                                     exercise.Value.Weight = ex.Value.Weight;
@@ -480,7 +480,7 @@ namespace Workout_Planner
                 Console.WriteLine("Workout saved to: " + fullFilePath);
 
                 // show a temporary content dialog with the saved path (auto-hide after 2s)
-                _ = ShowTempSavedDialog(fullFilePath);
+               // _ = ShowTempSavedDialog(fullFilePath);
 
                 return true;
             }
@@ -491,73 +491,5 @@ namespace Workout_Planner
             }
         }
 
-        /// <summary>
-        /// Shows a temporary ContentDialog that displays the saved file path and auto-closes after 2 seconds.
-        /// </summary>
-        private async Task ShowTempSavedDialog(string path)
-        {
-            var dialog = new ContentDialog
-            {
-                Title = "Workout saved",
-                Content = $"Saved to: {path}",
-                PrimaryButtonText = "OK",
-                XamlRoot = this.XamlRoot
-            };
-
-            // Start showing the dialog without awaiting so we can auto-hide it.
-            var showTask = dialog.ShowAsync();
-
-            // Wait 2 seconds then hide the dialog on the UI thread.
-            await Task.Delay(2000);
-            Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread().TryEnqueue(() => dialog.Hide());
-
-            // ensure ShowAsync completes
-            await showTask;
-        }
-
-        /// <summary>
-        /// Deletes the workout file located in the user's roaming application data folder if it exists.
-        /// </summary>
-        /// <remarks>If the workout file does not exist, the method returns false without throwing an
-        /// exception. Any exceptions encountered during the deletion process are caught and logged, and the method
-        /// returns false in such cases.</remarks>
-        /// <returns>true if the workout file was successfully deleted; otherwise, false.</returns>
-        private bool DeleteWorkoutFile()
-        {
-            try
-            {
-                string roamingAppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                string filePath = Path.Combine(roamingAppDataPath, "Workout", "workout.json");
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                    Console.WriteLine("Workout deleted: " + filePath);
-                    return true;
-                }
-                else
-                {
-                    Console.WriteLine("No workout found to delete at: " + filePath);
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return false;
-            }
-        }
-
-        private void OpenRoamingWorkoutFolder()
-        {
-            string roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string path = Path.Combine(roaming, "Workout");
-            // create for visibility if you want
-            Directory.CreateDirectory(path);
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = path,
-                UseShellExecute = true
-            });
-        }
     }
 }

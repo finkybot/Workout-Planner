@@ -75,6 +75,7 @@
   <PropertyGroup>
     <!-- Make non-Debug publishes self-contained so PublishTrimmed would be supported if enabled -->
     <SelfContained Condition="'$(Configuration)' != 'Debug'">true</SelfContained>
+	<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 
     <!-- If a single RID is needed for publish, set it for non-Debug automatically -->
     <RuntimeIdentifier Condition="'$(Configuration)' != 'Debug' and '$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
